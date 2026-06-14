@@ -132,7 +132,7 @@ def load_safetensors_with_lora(
 
   return state_dict
 
-__all__ = ["WanModel"]
+__all__ = ["WanModel", "detect_wan_model_config"]
 
 
 def sinusoidal_embedding_1d(dim, position):
@@ -721,6 +721,50 @@ def detect_wan_sd_dtype(path: str) -> torch.dtype:
       raise ValueError(f"Could not find the dtype in the model weights: {path}")
   logger.info(f"Detected DiT dtype: {dit_dtype}")
   return dit_dtype
+
+
+def detect_wan_model_config(path: str):
+  """Infer WanModel constructor kwargs from safetensors weight shapes."""
+  import types
+  with MemoryEfficientSafeOpen(path) as f:
+    keys = set(f.keys())
+    prefix = "model.diffusion_model." if "model.diffusion_model.patch_embedding.weight" in keys else ""
+
+    def shape(key):
+      return f.get_tensor(prefix + key).shape
+
+    pe = shape("patch_embedding.weight")   # [dim, in_dim, t, h, w]
+    dim, in_dim = int(pe[0]), int(pe[1])
+
+    ffn0 = shape("blocks.0.ffn.0.weight")  # [ffn_dim, dim]
+    ffn_dim = int(ffn0[0])
+
+    te = shape("time_embedding.0.weight")   # [dim, freq_dim]
+    freq_dim = int(te[1])
+
+    block_indices = {
+      int(k[len(prefix):].split(".")[1])
+      for k in keys
+      if k[len(prefix):].startswith("blocks.") and k[len(prefix):].split(".")[1].isdigit()
+    }
+    num_layers = max(block_indices) + 1
+
+    head_w = shape("head.head.weight")      # [out_dim * prod(patch_size), dim]
+    patch_size = (int(pe[2]), int(pe[3]), int(pe[4]))
+    out_dim = int(head_w[0]) // math.prod(patch_size)
+
+    num_heads = dim // 128  # all Wan models use head_dim=128
+
+  cfg = types.SimpleNamespace(
+    dim=dim, in_dim=in_dim, out_dim=out_dim, ffn_dim=ffn_dim,
+    freq_dim=freq_dim, num_heads=num_heads, num_layers=num_layers,
+    eps=1e-6, text_len=512,
+  )
+  logger.info(
+    f"Detected WanModel config: dim={dim}, in_dim={in_dim}, ffn_dim={ffn_dim}, "
+    f"num_heads={num_heads}, num_layers={num_layers}, out_dim={out_dim}"
+  )
+  return cfg
 
 
 def load_wan_model(

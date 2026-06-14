@@ -25,8 +25,8 @@ Each experiment runs on a single GPU. The training script runs for a **fixed tim
 ```
 uv run accelerate launch --num_cpu_threads_per_process 4 src/musubi_tuner/wan_train_network.py \
     --dit ~/nous/comfyui-data/models/diffusion_models/wan2.2_i2v_high_noise_14B_fp16.safetensors \
-    --dataset_config ~/nanomusubi/runs/td/config.toml \
-    --output_dir ~/nanomusubi/runs/td/output \
+    --dataset_config ./runs/td/config.toml \
+    --output_dir ./runs/td/output \
     --output_name wan2.2-i2v-high-td-v1.0 \
     --min_timestep 900
 ```

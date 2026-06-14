@@ -30,7 +30,7 @@ from musubi_tuner.training.accelerator_setup import collator_class, prepare_acce
 from musubi_tuner.training.timesteps import compute_density_for_timestep_sampling, get_sigmas
 from musubi_tuner.utils import model_utils
 from musubi_tuner.utils.model_utils import clean_memory_on_device
-from musubi_tuner.wan.modules.model import WanModel, detect_wan_sd_dtype, load_wan_model
+from musubi_tuner.wan.modules.model import WanModel, detect_wan_model_config, detect_wan_sd_dtype, load_wan_model
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -538,6 +538,7 @@ class NetworkTrainer:
   # region Wan 2.2 I2V model implementation
 
   def handle_model_specific_args(self, cfg: argparse.Namespace):
+    self.config = detect_wan_model_config(cfg.dit)
     self.dit_dtype = detect_wan_sd_dtype(cfg.dit)
 
     if self.dit_dtype == torch.float16:
