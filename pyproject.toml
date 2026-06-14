@@ -1,0 +1,175 @@
+[project]
+name = "musubi-tuner"
+version = "0.3.0"
+description = "Musubi Tuner by kohya_ss"
+readme = "README.md"
+requires-python = ">=3.10, <3.13"
+dependencies = [
+  "accelerate==1.6.0",
+  "av==14.0.1",
+  "bitsandbytes",
+  "diffusers==0.32.1",
+  "einops==0.7.0",
+  "huggingface-hub==0.34.3",
+  "opencv-python==4.10.0.84",
+  "pillow>=11.3.0",
+  "safetensors==0.4.5",
+  "toml==0.10.2",
+  "tqdm==4.67.1",
+  "transformers==4.56.1",
+  # Wan2.2
+  "ftfy==6.3.1",
+  "easydict==1.13",
+  "nvidia-ml-py>=13.595.45",
+]
+
+[project.optional-dependencies]
+cu124 = [
+  "torch>=2.5.1",
+  "torchvision>=0.20.1",
+]
+cu128 = [
+  "torch>=2.7.1",
+  "torchvision>=0.22.1",
+]
+cu130 = [
+  "torch>=2.9.1",
+  "torchvision>=0.24.1",
+]
+flash3 = [
+  "flash-attn-3==3.0.0",
+]
+
+[tool.uv]
+conflicts = [
+  [
+    { extra = "cu124" },
+    { extra = "cu128" },
+    { extra = "cu130" },
+  ],
+  [
+    { extra = "flash3" },
+    { extra = "cu124" },
+  ],
+  [
+    { extra = "flash3" },
+    { extra = "cu128" },
+  ],
+]
+
+[dependency-groups]
+dev = [
+  "ascii-magic==2.3.0",
+  "matplotlib==3.10.0",
+  "tensorboard",
+  "prompt-toolkit==3.0.51",
+  "ruff>=0.12.10",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu124", extra = "cu124" },
+  { index = "pytorch-cu128", extra = "cu128" },
+  { index = "pytorch-cu130", extra = "cu130" },
+]
+torchvision = [
+  { index = "pytorch-cu124", extra = "cu124" },
+  { index = "pytorch-cu128", extra = "cu128" },
+  { index = "pytorch-cu130", extra = "cu130" },
+]
+flash-attn-3 = [
+  { index = "pytorch-cu130", extra = "flash3" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.ruff]
+line-length = 160
+indent-width = 2
+target-version = "py310"
+exclude = [
+  ".git",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".venv",
+  "**/__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "W",
+  "PIE",
+  "C4",
+  "ISC",
+  "A",
+  "B",
+  "NPY",
+  "UP",
+  "I",
+  "RUF008",
+  "RUF100",
+  "TID251",
+  "PLR1704",
+]
+ignore = [
+  "E402",   # module-import-not-at-top-of-file
+  "E712",   # true-false-comparison
+  "E721",   # type-comparison
+  "E722",   # bare-except
+  "E731",   # lambda-assignment
+  "E741",   # ambiguous-variable-name
+  "E501",   # line-too-long; many user-facing bilingual strings are intentionally long
+  "F601",   # multi-value-repeated-key-literal
+  "F841",   # unused-variable
+  "A001",   # builtin-variable-shadowing
+  "A002",   # builtin-argument-shadowing
+  "B024",   # abstract base class without abstract methods
+  "B027",   # empty method without abstract decorator
+  "B006",   # mutable-argument-default
+  "B007",   # unused-loop-control-variable
+  "B008",   # function-call-in-default-argument
+  "B023",   # function-uses-loop-variable
+  "B028",   # no-explicit-stacklevel
+  "B904",   # raise-without-from-inside-except
+  "B905",   # zip-without-explicit-strict
+  "C403",   # unnecessary-list-comprehension-set
+  "C408",   # unnecessary dict call
+  "C416",   # unnecessary-dict-comprehension
+  "C419",   # unnecessary-comprehension-in-call
+  "ISC002", # implicit string concatenation over multiple lines
+  "ISC003", # explicit string concatenation
+  "NPY002", # old numpy random syntax
+]
+
+[tool.ruff.lint.flake8-implicit-str-concat]
+allow-multiline = false
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
